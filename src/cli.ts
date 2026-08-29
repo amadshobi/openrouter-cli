@@ -11,7 +11,7 @@ import keysCmd from "./commands/keys.ts";
 export const main = defineCommand({
 	meta: {
 		name: "or",
-		version: "1.1.0",
+		version: "1.1.1",
 		description:
 			"OpenRouter Control Center — credits, models, benchmarks, analytics & API key management",
 	},

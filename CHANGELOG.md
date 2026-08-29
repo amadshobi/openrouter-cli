@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-29
+
+### Fixed
+
+- Table alignment and divider indentation in `or credits` recent spend table
+- Parser issue where flags with `=` (e.g. `--in=0.1:0.5`, `--out`, `--context`) preserved a leading `=`
+- Hardcoded emoji in unknown command error output in favor of `ICON.error` Nerd Font glyph
+- Missing input validation for `analytics <days>`, `activity <window>`, and `keys create/update --limit`
+- Typo in `or models` help example referencing non-existent `--ctx` flag
+
+### Changed
+
+- Standardized error messages to English in `or keys create`
+- Centralized section divider `DIVIDER` export from `src/core/format.ts`
+- Cleaned up unused `--force` flags from `models` and `activity` commands
+- Subcommand unknown argument dispatcher now shows contextual help at all depth levels
+
 ## [1.1.0] - 2026-08-29
 
 ### Changed

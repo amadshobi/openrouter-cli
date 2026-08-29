@@ -63,7 +63,7 @@ export default defineCommand({
 		limit: {
 			type: "string",
 			alias: "n",
-			description: "Max rows (default 10)",
+			description: "Max rows (default 20)",
 		},
 	},
 	async run({ args }) {
@@ -72,9 +72,22 @@ export default defineCommand({
 		const limitRaw = args.limit?.startsWith("=")
 			? args.limit.slice(1)
 			: args.limit;
-		const maxResults = limitRaw ? Number(limitRaw) : 20;
+		let maxResults = 20;
+		if (limitRaw) {
+			const n = Number(limitRaw);
+			if (Number.isNaN(n) || n <= 0) {
+				return fmtError(
+					"BENCHMARKS ERROR",
+					new Error(
+						`Invalid limit: '${args.limit}' (must be a positive number)`,
+					),
+					"Example: or benchmarks --limit=15",
+				);
+			}
+			maxResults = n;
+		}
 
-		let data: Array<any>;
+		let data: Array<AaItem | DaItem | Record<string, unknown>>;
 		try {
 			const res = await client.benchmarks.getBenchmarks({
 				source: args.source,
@@ -122,7 +135,7 @@ export default defineCommand({
 				`  ${"Model".padEnd(32)} ${idxLabel.padEnd(9)} ${"Cost $/M".padStart(10)}`,
 			);
 			lines.push(`  ${"─".repeat(32)} ${"─".repeat(9)} ${"─".repeat(10)}`);
-			for (const item of aaItems.slice(0, 10)) {
+			for (const item of aaItems.slice(0, maxResults)) {
 				const display = (
 					item.displayName ||
 					item.modelPermaslug.split("/").pop() ||
@@ -155,7 +168,7 @@ export default defineCommand({
 			lines.push(
 				`  ${"─".repeat(30)} ${"─".repeat(8)} ${"─".repeat(7)} ${"─".repeat(12)}`,
 			);
-			for (const item of daItems.slice(0, 10)) {
+			for (const item of daItems.slice(0, maxResults)) {
 				const display = (
 					item.displayName ||
 					item.modelPermaslug.split("/").pop() ||
@@ -173,9 +186,15 @@ export default defineCommand({
 		if (aaItems.length === 0 && daItems.length === 0) {
 			lines.push(`\nRaw entries (${data.length}):`);
 			for (const item of data.slice(0, 5)) {
-				lines.push(
-					`  • ${(item as any).displayName ?? (item as any).modelPermaslug ?? "?"}`,
-				);
+				const name =
+					("displayName" in item && typeof item.displayName === "string"
+						? item.displayName
+						: undefined) ??
+					("modelPermaslug" in item && typeof item.modelPermaslug === "string"
+						? item.modelPermaslug
+						: undefined) ??
+					"?";
+				lines.push(`  • ${name}`);
 			}
 		}
 

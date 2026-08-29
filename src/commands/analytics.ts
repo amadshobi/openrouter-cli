@@ -19,7 +19,19 @@ export default defineCommand({
 	},
 	async run({ args }) {
 		const client = getClient();
-		const days = args.days ? Number(args.days) : 7;
+		let days = 7;
+		if (args.days) {
+			days = Number(args.days);
+			if (Number.isNaN(days) || days <= 0) {
+				return fmtError(
+					"ANALYTICS ERROR",
+					new Error(
+						`Invalid days argument: '${args.days}' (must be a positive number)`,
+					),
+					"Example: or analytics 14",
+				);
+			}
+		}
 		const now = new Date();
 		const startDt = new Date(now.getTime() - days * 86_400_000);
 

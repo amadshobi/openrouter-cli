@@ -45,16 +45,19 @@ export default defineCommand({
 			description:
 				"15m | 30m | 1h | 2h | 3h | 6h | 12h | 24h | today (default: today)",
 		},
-		force: {
-			type: "boolean",
-			alias: "f",
-			description: "Force re-fetch from API",
-		},
 	},
 	async run({ args }) {
 		const client = getClient();
-		const window = (args.window ?? "today").toLowerCase();
-		const win = WINDOWS[window] ?? WINDOWS.today!;
+		const windowInput = args.window ?? "today";
+		const window = String(windowInput).toLowerCase();
+		if (!(window in WINDOWS)) {
+			return fmtError(
+				"ACTIVITY ERROR",
+				new Error(`Invalid window: '${args.window}'`),
+				`Valid options: ${Object.keys(WINDOWS).join(", ")}`,
+			);
+		}
+		const win = WINDOWS[window]!;
 
 		// today → start of local day in UTC; otherwise now - window
 		const now = new Date();

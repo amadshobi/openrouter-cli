@@ -13,7 +13,7 @@ export function ansi(text: string | number, code: string): string {
 	return `${code}${text}${C_RESET}`;
 }
 
-const DIVIDER = "━".repeat(20);
+export const DIVIDER = "━".repeat(20);
 
 /**
  * Section header: `<icon> <TITLE>` over a divider line.

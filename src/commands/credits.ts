@@ -144,8 +144,7 @@ export default defineCommand({
 		);
 		lines.push(
 			header(
-				"  " +
-					"─".repeat(22) +
+				"─".repeat(22) +
 					" " +
 					"─".repeat(8) +
 					" " +
@@ -192,8 +191,7 @@ export default defineCommand({
 		}
 		lines.push(
 			header(
-				"  " +
-					"─".repeat(22) +
+				"─".repeat(22) +
 					" " +
 					"─".repeat(8) +
 					" " +
@@ -258,8 +256,7 @@ export default defineCommand({
 					);
 					lines.push(
 						header(
-							"  " +
-								"─".repeat(36) +
+							"─".repeat(36) +
 								"  " +
 								"─".repeat(8) +
 								"  " +
@@ -269,29 +266,25 @@ export default defineCommand({
 						),
 					);
 					for (const r of rows) {
-						const model = (r as any).model ?? "?";
-						const short = String(model).split("/").pop() ?? "?";
+						const model = typeof r.model === "string" ? r.model : "?";
+						const short = model.split("/").pop() ?? "?";
 						const display = (
 							modelNames[model] ??
 							modelNames[short] ??
 							short
 						).slice(0, 36);
-						const spend = Number((r as any).total_usage ?? 0);
-						const key = String((r as any).api_key_id ?? "?").slice(0, 16);
-						const timeLabel = fmtTime(
-							String((r as any).date__hour ?? ""),
-							today,
-						);
+						const spend = Number(r.total_usage ?? 0);
+						const key = String(r.api_key_id ?? "?").slice(0, 16);
+						const timeLabel = fmtTime(String(r.date__hour ?? ""), today);
 						lines.push(
 							header(
-								`${display.padEnd(36)}  ${fmtUsd(spend).padStart(8)}  ${key.padEnd(14)}  ${timeLabel.padEnd(12)}`,
+								`${display.padEnd(36)}  ${fmtUsd(spend).padStart(8)}  ${key.padEnd(16)}  ${timeLabel.padEnd(12)}`,
 							),
 						);
 					}
 					lines.push(
 						header(
-							"  " +
-								"─".repeat(36) +
+							"─".repeat(36) +
 								"  " +
 								"─".repeat(8) +
 								"  " +
