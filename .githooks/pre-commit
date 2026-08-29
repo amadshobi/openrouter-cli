@@ -1,0 +1,7 @@
+#!/bin/sh
+# pre-commit: run typecheck before allowing a commit
+set -euo pipefail
+
+echo "→ Typecheck..."
+bun run typecheck
+echo "✓ Typecheck OK"

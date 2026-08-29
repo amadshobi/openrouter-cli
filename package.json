@@ -1,0 +1,44 @@
+{
+  "name": "openrouter-cli",
+  "version": "1.0.0",
+  "description": "OpenRouter Control Center — terminal CLI for credits, models, benchmarks, analytics & API key management",
+  "license": "MIT",
+  "author": "amadshobi",
+  "keywords": [
+    "openrouter",
+    "cli",
+    "terminal",
+    "llm",
+    "api-keys",
+    "analytics",
+    "benchmarks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shobixlinuxdev/openrouter-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shobixlinuxdev/openrouter-cli/issues"
+  },
+  "homepage": "https://github.com/shobixlinuxdev/openrouter-cli",
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "type": "module",
+  "bin": {
+    "or": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --compile --outfile dist/or",
+    "dev": "bun run ./src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openrouter/sdk": "1.2.83",
+    "citty": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.0",
+    "typescript": "^7.0.2"
+  }
+}

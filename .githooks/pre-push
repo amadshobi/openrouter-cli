@@ -1,0 +1,40 @@
+#!/bin/sh
+# pre-push: build binary, verify it runs, and scan for leaked secrets
+set -euo pipefail
+
+echo "→ Building binary..."
+bun run build
+
+echo "→ Verifying binary..."
+test -x dist/or
+VERSION=$(dist/or --version)
+echo "  ✓ dist/or --version = $VERSION"
+
+echo "→ Scanning pushed commits for secrets..."
+# Scan the commits about to be pushed for common secret patterns
+REMOTE="${1:-origin}"
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Find the base of the push: commits not yet on remote
+REMOTE_BRANCH="${REMOTE}/${BRANCH}"
+if git rev-parse --verify "$REMOTE_BRANCH" >/dev/null 2>&1; then
+  RANGE="$REMOTE_BRANCH..HEAD"
+else
+  # New branch: scan all commits reachable from HEAD that aren't shared with origin
+  RANGE="$(git merge-base HEAD "$REMOTE/HEAD" 2>/dev/null || echo HEAD~1)..HEAD"
+fi
+
+LEAKS=$(git log --format='%H %s' "$RANGE" 2>/dev/null | wc -l)
+if [ "$LEAKS" = "0" ]; then
+  echo "  (nothing to scan)"
+  exit 0
+fi
+
+if git diff "$RANGE" -- . 2>/dev/null | grep -aiE '(sk-or-v1-[a-z0-9]{20,}|api[_-]?key\s*[=:]\s*["'"'"']?[a-z0-9_-]{16,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|ghp_[a-zA-Z0-9]{20,})' | grep -v '^diff' | grep -v '^index' | grep -v '^---' | grep -v '^+++' | grep -v '^@@' | head -5; then
+  echo "✗ Potential secret detected in the push! Aborting."
+  echo "  Check the lines above — remove secrets before pushing."
+  exit 1
+fi
+
+echo "  ✓ No secrets found"
+echo "✓ Pre-push checks passed"
