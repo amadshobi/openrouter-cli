@@ -5,14 +5,13 @@ import { getClient } from "../core/client.ts";
 import { fmtError } from "../core/errors.ts";
 import {
 	ansi,
-	bar,
 	fmtUsd,
 	C_BOLD,
 	C_GREEN,
 	C_RED,
-	C_RESET,
 	C_YELLOW,
 } from "../core/format.ts";
+import { ICON } from "../core/icon.ts";
 
 type KeyRow = {
 	name: string;
@@ -77,7 +76,7 @@ export default defineCommand({
 					keys.sort((a, b) => b.usage - a.usage);
 
 					const lines = [
-						`🔑 ${ansi("API KEYS", C_BOLD)} (${keys.length})`,
+						`${ICON.key} ${ansi("API KEYS", C_BOLD)} (${keys.length})`,
 						"━━━━━━━━━━━━━━━━━━━━",
 						`  ${"Name".padEnd(22)} ${"Total".padStart(8)} ${"Mo".padStart(8)} ${"Wk".padStart(7)} ${"Today".padStart(7)} ${"BYOK".padStart(8)}  ${"Limit".padStart(9)} ${"Reset".padEnd(4)} ${"Status".padEnd(8)}`,
 						`  ${"─".repeat(22)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(7)} ${"─".repeat(7)} ${"─".repeat(8)}  ${"─".repeat(9)} ${"─".repeat(4)} ${"─".repeat(8)}`,
@@ -89,8 +88,8 @@ export default defineCommand({
 						const limit = k.limit !== null ? fmtUsd(k.limit) : "∞";
 						const reset = resetLabel(k.limitReset);
 						const status = k.disabled
-							? ansi("✗ disabled", C_RED)
-							: ansi("✓ active", C_GREEN);
+							? ansi(`${ICON.circleOff} disabled`, C_RED)
+							: ansi(`${ICON.circle} active`, C_GREEN);
 						lines.push(
 							`  ${name} ${fmtUsd(k.usage).padStart(8)} ${fmtUsd(k.usageMonthly).padStart(8)} ${fmtUsd(k.usageWeekly).padStart(7)} ${fmtUsd(k.usageDaily).padStart(7)} ${byok.padStart(8)}  ${limit.padStart(9)} ${reset.padEnd(4)} ${status}`,
 						);
@@ -100,7 +99,7 @@ export default defineCommand({
 					return fmtError(
 						"KEYS ERROR",
 						err,
-						"Cek MANAGEMENT_KEY di .env (butuh management key)",
+						"Check MANAGEMENT_KEY in .env (management key required)",
 					);
 				}
 			},
@@ -137,7 +136,7 @@ export default defineCommand({
 					return fmtError(
 						"KEYS ERROR",
 						new Error("Nama key wajib diisi"),
-						"Contoh: or keys create my-key --limit=5 --limit-reset=daily",
+						"Example: or keys create my-key --limit=5 --limit-reset=daily",
 					);
 
 				let limit: number | null = null;
@@ -151,7 +150,7 @@ export default defineCommand({
 						return fmtError(
 							"KEYS ERROR",
 							new Error(`Invalid --limit: '${args.limit}'`),
-							"Contoh: --limit=5.00",
+							"Example: --limit=5.00",
 						);
 				}
 
@@ -170,7 +169,7 @@ export default defineCommand({
 							return fmtError(
 								"KEYS ERROR",
 								new Error(`Invalid --expires: '${v}'`),
-								"Contoh: --expires=2027-01-01 atau 30d",
+								"Example: --expires=2027-01-01 or 30d",
 							);
 					}
 				}
@@ -194,7 +193,7 @@ export default defineCommand({
 					// OpenRouter no longer returns plaintext key (write-only) — only truncated label
 					const label = (key as any)?.label ?? "?";
 					const lines = [
-						`🔑 ${ansi("KEY CREATED", C_BOLD)}`,
+						`${ICON.key} ${ansi("KEY CREATED", C_BOLD)}`,
 						"━━━━━━━━━━━━━━━━━━━━",
 						`  • Name:   ${key?.name ?? name}`,
 						`  • Hash:   ${key?.hash ?? "?"}`,
@@ -202,15 +201,15 @@ export default defineCommand({
 						`  • Limit:  ${key?.limit !== null && key?.limit !== undefined ? fmtUsd(key.limit) : "∞"}`,
 						`  • Reset:  ${resetLabel(key?.limitReset ?? null)}`,
 						"",
-						`ℹ️  OpenRouter tidak mengembalikan plaintext key (write-only).`,
-						`   Hash di atas adalah pengenal key untuk operasi selanjutnya.`,
+						`${ICON.info}  OpenRouter does not return the plaintext key (write-only).`,
+						`   The hash above identifies the key for later operations.`,
 					];
 					return lines.join("\n");
 				} catch (err) {
 					return fmtError(
 						"KEYS CREATE ERROR",
 						err,
-						"Cek MANAGEMENT_KEY di .env (butuh management key)",
+						"Check MANAGEMENT_KEY in .env (management key required)",
 					);
 				}
 			},
@@ -255,18 +254,18 @@ export default defineCommand({
 				if (Object.keys(body).length === 0) {
 					return fmtError(
 						"KEYS UPDATE ERROR",
-						new Error("Tidak ada field yang diupdate"),
-						"Contoh: or keys update <hash> --name=new-name --limit=10 --limit-reset=monthly",
+						new Error("No fields to update"),
+						"Example: or keys update <hash> --name=new-name --limit=10 --limit-reset=monthly",
 					);
 				}
 				try {
 					await client.apiKeys.update({ hash, requestBody: body as any });
-					return `✅ ${ansi("KEY UPDATED", C_GREEN)}\n  • Hash: ${hash}\n  • Field: ${Object.keys(body).join(", ")}`;
+					return `${ICON.check} ${ansi("KEY UPDATED", C_GREEN)}\n  • Hash: ${hash}\n  • Field: ${Object.keys(body).join(", ")}`;
 				} catch (err) {
 					return fmtError(
 						"KEYS UPDATE ERROR",
 						err,
-						"Cek MANAGEMENT_KEY di .env",
+						"Check MANAGEMENT_KEY in .env",
 					);
 				}
 			},
@@ -287,12 +286,12 @@ export default defineCommand({
 						hash: String(args.hash),
 						requestBody: { disabled: true },
 					});
-					return `🔴 ${ansi("KEY DISABLED", C_RED)}\n  • Hash: ${args.hash}`;
+					return `${ICON.circleOff} ${ansi("KEY DISABLED", C_RED)}\n  • Hash: ${args.hash}`;
 				} catch (err) {
 					return fmtError(
 						"KEYS DISABLE ERROR",
 						err,
-						"Cek MANAGEMENT_KEY di .env",
+						"Check MANAGEMENT_KEY in .env",
 					);
 				}
 			},
@@ -313,12 +312,12 @@ export default defineCommand({
 						hash: String(args.hash),
 						requestBody: { disabled: false },
 					});
-					return `🟢 ${ansi("KEY ENABLED", C_GREEN)}\n  • Hash: ${args.hash}`;
+					return `${ICON.circle} ${ansi("KEY ENABLED", C_GREEN)}\n  • Hash: ${args.hash}`;
 				} catch (err) {
 					return fmtError(
 						"KEYS ENABLE ERROR",
 						err,
-						"Cek MANAGEMENT_KEY di .env",
+						"Check MANAGEMENT_KEY in .env",
 					);
 				}
 			},
@@ -338,16 +337,16 @@ export default defineCommand({
 				const hash = String(args.hash);
 				// Non-interactive guard: never auto-confirm destructive ops
 				if (!args.yes) {
-					return `⚠️  ${ansi("KONFIRMASI DIBUTUHKAN", C_YELLOW)}\n  Key hash: ${hash}\n  Jalankan ulang dengan flag --yes untuk konfirmasi penghapusan permanen.`;
+					return `${ICON.warning}  ${ansi("CONFIRMATION REQUIRED", C_YELLOW)}\n  Key hash: ${hash}\n  Re-run with --yes to confirm permanent deletion.`;
 				}
 				try {
 					await client.apiKeys.delete({ hash });
-					return `🗑️  ${ansi("KEY DELETED", C_RED)}\n  • Hash: ${hash}`;
+					return `${ICON.trash}  ${ansi("KEY DELETED", C_RED)}\n  • Hash: ${hash}`;
 				} catch (err) {
 					return fmtError(
 						"KEYS DELETE ERROR",
 						err,
-						"Cek MANAGEMENT_KEY di .env",
+						"Check MANAGEMENT_KEY in .env",
 					);
 				}
 			},

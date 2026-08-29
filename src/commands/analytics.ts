@@ -2,14 +2,8 @@
 import { defineCommand } from "citty";
 import { apiRaw, getClient } from "../core/client.ts";
 import { fmtError } from "../core/errors.ts";
-import {
-	ansi,
-	bar,
-	fmtTokens,
-	fmtUsd,
-	C_BOLD,
-	C_RESET,
-} from "../core/format.ts";
+import { fmtSection, bar, fmtTokens, fmtUsd } from "../core/format.ts";
+import { ICON } from "../core/icon.ts";
 
 export default defineCommand({
 	meta: {
@@ -40,7 +34,7 @@ export default defineCommand({
 			return fmtError(
 				"ANALYTICS ERROR",
 				err,
-				"Cek MANAGEMENT_KEY di .env (butuh management key)",
+				"Check MANAGEMENT_KEY in .env (management key required)",
 			);
 		}
 
@@ -55,7 +49,7 @@ export default defineCommand({
 		});
 
 		if (rows.length === 0) {
-			return `📈 ${ansi("WEEKLY ANALYTICS", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\nTidak ada data ${days} hari terakhir.`;
+			return `${fmtSection(ICON.chartLine, "WEEKLY ANALYTICS")}\nNo data for the last ${days} days.`;
 		}
 
 		// model name map
@@ -101,13 +95,12 @@ export default defineCommand({
 		const topReqs = sortedModels[0]?.[1]?.reqs ?? 0;
 
 		const lines = [
-			`📈 ${ansi("WEEKLY ANALYTICS", C_BOLD)}`,
-			"━━━━━━━━━━━━━━━━━━━━",
+			fmtSection(ICON.chartLine, "WEEKLY ANALYTICS"),
 			`• Total Requests: ${totalReqs}`,
 			`• Total Usage: ${fmtUsd(totalUsage)}`,
 			`• Total Tokens: ${fmtTokens(totalTokens)}`,
 			"",
-			`🧠 ${ansi("TOP MODELS BY REQUESTS", C_BOLD)}`,
+			fmtSection(ICON.robot, "TOP MODELS BY REQUESTS"),
 			`  ${"Model".padEnd(28)} ${"Reqs".padStart(5)} ${"Tokens".padStart(7)} ${"Usage".padStart(8)}  ${"Bar".padEnd(10)}`,
 			`  ${"─".repeat(28)} ${"─".repeat(5)} ${"─".repeat(7)} ${"─".repeat(8)}  ${"─".repeat(10)}`,
 		];

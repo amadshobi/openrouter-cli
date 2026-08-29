@@ -1,5 +1,6 @@
 // Error handling: fail-fast with actionable hints (no stack traces by default).
 import { C_BOLD, C_DIM, C_RED, C_RESET, C_YELLOW } from "./format.ts";
+import { ICON } from "./icon.ts";
 
 /** Extract the human message from any thrown value. */
 function messageOf(err: unknown): string {
@@ -9,7 +10,7 @@ function messageOf(err: unknown): string {
 
 /** Render a command failure as a clean 3-line block: header, reason, hint. */
 export function fmtError(title: string, err: unknown, hint?: string): string {
-	const header = `❌ ${C_RED}${C_BOLD}${title}${C_RESET}`;
+	const header = `${ICON.error} ${C_RED}${C_BOLD}${title}${C_RESET}`;
 	const lines = [header, `   ${C_YELLOW}${messageOf(err)}${C_RESET}`];
 	if (hint) lines.push(`   ${C_DIM}hint: ${hint}${C_RESET}`);
 	return lines.join("\n");
@@ -19,7 +20,7 @@ export function fmtError(title: string, err: unknown, hint?: string): string {
 export class MissingKeyError extends Error {
 	constructor(keyName: string) {
 		super(
-			`API key ${keyName} tidak ditemukan. Atur di .env atau environment variable.`,
+			`API key ${keyName} is missing. Set it in .env or as an environment variable.`,
 		);
 		this.name = "MissingKeyError";
 	}

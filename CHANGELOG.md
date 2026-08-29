@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-29
+
+### Changed
+
+- Replace all emoji output with Nerd Font glyphs (single source in `src/core/icon.ts`)
+- All user-facing output & hints now in English
+- Consistent section headers via `fmtSection()` helper
+- README rewritten in English with badges, install & examples
+- Removed unused imports across all commands
+
+### Added
+
+- Usage examples in `or models` default view
+
 ## [1.0.0] - 2026-08-29
 
 ### Added

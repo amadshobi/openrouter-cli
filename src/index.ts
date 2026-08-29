@@ -37,7 +37,7 @@ async function dispatch(): Promise<string> {
 			!next.startsWith("-")
 		) {
 			await showUsage(rootCmd);
-			return `❌ Unknown command: ${next}\n   Jalankan \`or --help\` untuk daftar perintah.`;
+			return `❌ Unknown command: ${next}\n   Run \`or --help\` to list commands.`;
 		}
 		if (!subCommands || !next || !(next in subCommands)) break;
 		cmd = subCommands[next];

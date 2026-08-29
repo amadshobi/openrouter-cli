@@ -3,14 +3,8 @@
 import { defineCommand } from "citty";
 import { apiPost, getClient } from "../core/client.ts";
 import { fmtError } from "../core/errors.ts";
-import {
-	ansi,
-	bar,
-	fmtTokens,
-	fmtUsd,
-	C_BOLD,
-	C_RESET,
-} from "../core/format.ts";
+import { fmtSection, bar, fmtTokens, fmtUsd } from "../core/format.ts";
+import { ICON } from "../core/icon.ts";
 
 // window key → { label, granularity, minutes }
 const WINDOWS: Record<
@@ -100,12 +94,12 @@ export default defineCommand({
 			return fmtError(
 				"ACTIVITY ERROR",
 				err,
-				"Cek MANAGEMENT_KEY di .env (butuh management key)",
+				"Check MANAGEMENT_KEY in .env (management key required)",
 			);
 		}
 
 		if (rows.length === 0) {
-			return `📊 ${ansi(`ACTIVITY — ${win.label}`, C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\nBelum ada aktivitas dalam periode ini.`;
+			return `${fmtSection(ICON.chart, `ACTIVITY — ${win.label}`)}\nNo activity in this period.`;
 		}
 
 		// ── Fetch model name map (paginated) ────────────────────────────────
@@ -150,7 +144,7 @@ export default defineCommand({
 			totalUsage += usage;
 			totalTokens += tok;
 
-			const { key, label } = timeBucket(dt, window);
+			const { key } = timeBucket(dt, window);
 			const h = hourly.get(key) ?? { reqs: 0, tokens: 0, usage: 0 };
 			h.reqs += reqs;
 			h.tokens += tok;
@@ -173,10 +167,7 @@ export default defineCommand({
 			nBuckets <= 8 ? 24 : nBuckets <= 16 ? 14 : nBuckets <= 24 ? 10 : 6;
 		const topReqs = Math.max(...sortedHours.map(([, h]) => h.reqs), 0);
 
-		const lines = [
-			`📊 ${ansi(`ACTIVITY — ${win.label}`, C_BOLD)}`,
-			"━━━━━━━━━━━━━━━━━━━━",
-		];
+		const lines = [fmtSection(ICON.chart, `ACTIVITY — ${win.label}`)];
 		for (const [bk, h] of sortedHours) {
 			const b = bar(h.reqs, topReqs, barW);
 			lines.push(
@@ -196,7 +187,7 @@ export default defineCommand({
 		const topReqsM = sortedModels[0]?.[1]?.reqs ?? 0;
 		const barMw = 10;
 
-		lines.push(`🧠 ${ansi("TOP MODELS", C_BOLD)}`);
+		lines.push(fmtSection(ICON.robot, "TOP MODELS"));
 		lines.push(
 			`  ${"Model".padEnd(28)} ${"Reqs".padStart(5)} ${"Usage".padStart(8)}  ${"Bar".padEnd(barMw)}`,
 		);

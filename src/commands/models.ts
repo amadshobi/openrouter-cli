@@ -3,16 +3,15 @@ import { defineCommand } from "citty";
 import { getClient } from "../core/client.ts";
 import { fmtError } from "../core/errors.ts";
 import {
+	fmtSection,
 	ansi,
-	bar,
 	fmtTokens,
 	C_BOLD,
 	C_GREEN,
 	C_RED,
-	C_RESET,
 	C_CYAN,
-	C_YELLOW,
 } from "../core/format.ts";
+import { ICON } from "../core/icon.ts";
 
 // SDK model fields are camelCase (contextLength, pricing.prompt as string $/token).
 type Model = {
@@ -131,9 +130,13 @@ export default defineCommand({
 			try {
 				const res = await client.models.count();
 				const n = res.data?.count ?? "?";
-				return `🔢 ${ansi("MODEL COUNT", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\n• Total: ${n}`;
+				return fmtSection(ICON.count, "MODEL COUNT") + `\n• Total: ${n}`;
 			} catch (err) {
-				return fmtError("MODELS ERROR", err, "Cek OPENROUTER_API_KEY di .env");
+				return fmtError(
+					"MODELS ERROR",
+					err,
+					"Check OPENROUTER_API_KEY in .env",
+				);
 			}
 		}
 		if (args.mine) {
@@ -152,7 +155,7 @@ export default defineCommand({
 					);
 				}
 				const lines = [
-					`👤 ${ansi("MY MODELS", C_BOLD)} (${models.length})`,
+					`${ICON.user} ${ansi("MY MODELS", C_BOLD)} (${models.length})`,
 					"━━━━━━━━━━━━━━━━━━━━",
 				];
 				for (const m of models) {
@@ -162,7 +165,11 @@ export default defineCommand({
 				}
 				return lines.join("\n");
 			} catch (err) {
-				return fmtError("MODELS ERROR", err, "Cek OPENROUTER_API_KEY di .env");
+				return fmtError(
+					"MODELS ERROR",
+					err,
+					"Check OPENROUTER_API_KEY in .env",
+				);
 			}
 		}
 
@@ -233,9 +240,9 @@ export default defineCommand({
 
 		if (errors.length > 0) {
 			return (
-				`❌ ${ansi("INPUT ERROR", C_RED)}\n• ` +
+				`${ICON.error} ${ansi("INPUT ERROR", C_RED)}\n• ` +
 				errors.join("\n• ") +
-				"\n\nContoh: or models --list --in=5 --out=5:10 -r=30d --context=200k"
+				"\n\nExample: or models --list --in=5 --out=5:10 -r=30d --context=200k"
 			);
 		}
 
@@ -247,7 +254,7 @@ export default defineCommand({
 				models.push(...((page.result?.data ?? []) as Model[]));
 			}
 		} catch (err) {
-			return fmtError("MODELS ERROR", err, "Cek OPENROUTER_API_KEY di .env");
+			return fmtError("MODELS ERROR", err, "Check OPENROUTER_API_KEY in .env");
 		}
 
 		const modelNames: Record<string, string> = {};
@@ -255,8 +262,9 @@ export default defineCommand({
 
 		if (!args.list && !args.check) {
 			return (
-				`🤖 ${ansi("MODELS", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\n• Total models: ${models.length}\n` +
-				`\nGunakan --list untuk daftar, --check untuk health probe, --count untuk total, --mine untuk model user.`
+				`${ICON.robot} ${ansi("MODELS", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\n• Total models: ${models.length}\n` +
+				`\nUse --list for the table, --check for health probe, --count for total, --mine for your models.\n` +
+				`Examples:\n  or models --list --in=0.1:0.5 --ctx=128k: -r=30d\n  or models --check --in=0.1:0.5\n  or models --count`
 			);
 		}
 
@@ -299,7 +307,7 @@ export default defineCommand({
 		}
 
 		if (processed.length === 0) {
-			return `⚠️ ${ansi("NO MODELS FOUND", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\nFilter: ${filterStr}\nTotal scanned: ${models.length}\n\nFilter kelewat ketat Boss, coba lebarin range-nya. 😎`;
+			return `${ICON.warning} ${ansi("NO MODELS FOUND", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\nFilter: ${filterStr}\nTotal scanned: ${models.length}\n\nFilter too strict, try widening the range.`;
 		}
 
 		processed.sort((a, b) => a.prompt - b.prompt);
@@ -314,7 +322,7 @@ export default defineCommand({
 			statusMap = Object.fromEntries(
 				statuses.map(([id, lat]) => [
 					id,
-					{ label: lat < 0 ? "❔" : "🟢", latency: lat },
+					{ label: lat < 0 ? ICON.eye : ICON.circle, latency: lat },
 				]),
 			);
 			lastCheckStr = "just now";
@@ -322,7 +330,7 @@ export default defineCommand({
 
 		// ── Build table ────────────────────────────────────────────────────
 		const lines = [
-			`🤖 ${ansi("AVAILABLE MODELS", C_BOLD)} (${processed.length}/${models.length})`,
+			`${ICON.robot} ${ansi("AVAILABLE MODELS", C_BOLD)} (${processed.length}/${models.length})`,
 			`Filter: ${filterStr}`,
 		];
 		if (args.check) lines.push(`Last Check: ${lastCheckStr}`);
@@ -349,7 +357,7 @@ export default defineCommand({
 				26,
 			);
 			if (args.check) {
-				const info = statusMap[m.id] ?? { label: "❔", latency: 0 };
+				const info = statusMap[m.id] ?? { label: ICON.eye, latency: 0 };
 				const latStr = info.latency > 0 ? `${info.latency.toFixed(0)}ms` : "-";
 				lines.push(
 					`  ${display.padEnd(28)} ${info.label.padEnd(18)} ${latStr.padEnd(8)}`,
@@ -366,7 +374,9 @@ export default defineCommand({
 		}
 
 		if (args.check) {
-			lines.push(`\nLegend: 🟢 ok · ❔ unknown · — no latency data`);
+			lines.push(
+				`\nLegend: ${ICON.circle} ok · ${ICON.eye} unknown · — no latency data`,
+			);
 		}
 
 		return lines.join("\n");

@@ -4,16 +4,16 @@ import { apiPost, getClient } from "../core/client.ts";
 import { CREDIT_ALERT_THRESHOLD } from "../core/config.ts";
 import { fmtError } from "../core/errors.ts";
 import {
+	fmtSection,
 	ansi,
 	bar,
 	fmtPct,
 	fmtUsd,
-	C_BOLD,
 	C_GREEN,
 	C_RED,
-	C_RESET,
 	C_YELLOW,
 } from "../core/format.ts";
+import { ICON } from "../core/icon.ts";
 
 /** Format a "date__hour" like "2026-07-13 10:00:00" into "Today 10:00" or "Sun 07:00". */
 function fmtTime(dtStr: string, todayStr: string): string {
@@ -59,7 +59,7 @@ export default defineCommand({
 			return fmtError(
 				"CREDITS ERROR",
 				err,
-				"Cek MANAGEMENT_KEY/OPENROUTER_API_KEY di .env",
+				"Check MANAGEMENT_KEY/OPENROUTER_API_KEY in .env",
 			);
 		}
 		const balance = Math.max(0, total - used);
@@ -68,12 +68,11 @@ export default defineCommand({
 		const balColor = balance < CREDIT_ALERT_THRESHOLD ? C_RED : C_GREEN;
 		const alert =
 			balance < CREDIT_ALERT_THRESHOLD
-				? `\n\n🚨 ${ansi("LOW BALANCE ALERT!", C_RED)} Credit < $${CREDIT_ALERT_THRESHOLD} — top-up segera!`
+				? `\n\n${ICON.alert} ${ansi("LOW BALANCE ALERT!", C_RED)} Credit < $${CREDIT_ALERT_THRESHOLD} — top up now!`
 				: "";
 
 		const lines = [
-			`💰 ${ansi("CREDIT BALANCE", C_BOLD)}`,
-			"━━━━━━━━━━━━━━━━━━━━",
+			fmtSection(ICON.credits, "CREDIT BALANCE"),
 			`• Balance: ${ansi(fmtUsd(balance), balColor)}`,
 			`• Total:   ${fmtUsd(total)}`,
 			`• Used:    ${fmtUsd(used)} (${fmtPct(used, total)})`,
@@ -110,13 +109,13 @@ export default defineCommand({
 			}));
 		} catch (err) {
 			lines.push(
-				`\n⚠️  ${ansi("Keys Error", C_RED)}: ${err instanceof Error ? err.message : err}`,
+				`\n${ICON.warning}  ${ansi("Keys Error", C_RED)}: ${err instanceof Error ? err.message : err}`,
 			);
 			return lines.join("\n") + alert;
 		}
 
 		if (keys.length === 0) {
-			lines.push("\nTidak ada API keys.");
+			lines.push("\nNo API keys.");
 			return lines.join("\n") + alert;
 		}
 
@@ -126,7 +125,7 @@ export default defineCommand({
 			keys = keys.filter((k) => k.name.toLowerCase().includes(term));
 		}
 		if (keys.length === 0) {
-			lines.push("\nTidak ada API key yang cocok.");
+			lines.push("\nNo API key matches.");
 			return lines.join("\n") + alert;
 		}
 
@@ -136,7 +135,7 @@ export default defineCommand({
 		const maxLimit = Math.max(...keys.map((k) => k.limit ?? 0), 0);
 		const limitW = Math.max(String(maxLimit.toFixed(2)).length + 1, 9);
 
-		lines.push(`\n📋 ${ansi("KEY USAGE", C_BOLD)}`);
+		lines.push(fmtSection(ICON.table, "KEY USAGE"));
 		const header = (l: string) => `  ${l}`;
 		lines.push(
 			header(
@@ -176,7 +175,9 @@ export default defineCommand({
 			const limitStr = k.limit !== null ? fmtUsd(k.limit) : "—";
 			const remainStr =
 				k.limitRemaining !== null ? fmtUsd(k.limitRemaining) : "—";
-			const status = k.disabled ? ansi("✗", C_RED) : ansi("✓", C_GREEN);
+			const status = k.disabled
+				? ansi(ICON.circleOff, C_RED)
+				: ansi(ICON.circle, C_GREEN);
 
 			tUsage += k.usage;
 			tMonthly += k.usageMonthly;
@@ -248,12 +249,8 @@ export default defineCommand({
 						// names are a bonus — skip silently
 					}
 					const today = now.toISOString().slice(0, 10);
-					const topSpend = Math.max(
-						...rows.map((r: any) => Number(r.total_usage ?? 0)),
-						0,
-					);
 
-					lines.push(`\n🔎 ${ansi("RECENT SPEND (24h)", C_BOLD)}`);
+					lines.push(fmtSection(ICON.search, "RECENT SPEND (24h)"));
 					lines.push(
 						header(
 							`${"Model".padEnd(36)}  ${"Spend".padStart(8)}  ${"Key".padEnd(16)}  ${"Time".padEnd(12)}`,

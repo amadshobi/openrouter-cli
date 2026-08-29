@@ -2,7 +2,8 @@
 import { defineCommand } from "citty";
 import { getClient } from "../core/client.ts";
 import { fmtError } from "../core/errors.ts";
-import { ansi, C_BOLD, C_RED, C_RESET } from "../core/format.ts";
+import { fmtSection } from "../core/format.ts";
+import { ICON } from "../core/icon.ts";
 
 type AaItem = {
 	agenticIndex: number | null;
@@ -87,18 +88,15 @@ export default defineCommand({
 			return fmtError(
 				"BENCHMARKS ERROR",
 				err,
-				"Cek OPENROUTER_API_KEY / MANAGEMENT_KEY di .env",
+				"Check OPENROUTER_API_KEY / MANAGEMENT_KEY in .env",
 			);
 		}
 
 		if (data.length === 0) {
-			return `🏆 ${ansi("BENCHMARK RANKINGS", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\nBelum ada data benchmark.`;
+			return `${fmtSection(ICON.trophy, "BENCHMARK RANKINGS")}\nNo benchmark data yet.`;
 		}
 
-		const lines = [
-			`🏆 ${ansi("BENCHMARK RANKINGS", C_BOLD)}`,
-			"━━━━━━━━━━━━━━━━━━━━",
-		];
+		const lines = [fmtSection(ICON.trophy, "BENCHMARK RANKINGS")];
 
 		// ── Split by source ─────────────────────────────────────────────────
 		const aaItems = data.filter(
@@ -118,7 +116,7 @@ export default defineCommand({
 
 			aaItems.sort((a, b) => (b[idxKey] ?? 0) - (a[idxKey] ?? 0));
 			lines.push(
-				`\n📊 ${ansi(`ARTIFICIAL ANALYSIS — ${idxLabel.toUpperCase()}`, C_BOLD)}`,
+				`\n${fmtSection(ICON.chart, `ARTIFICIAL ANALYSIS — ${idxLabel.toUpperCase()}`)}`,
 			);
 			lines.push(
 				`  ${"Model".padEnd(32)} ${idxLabel.padEnd(9)} ${"Cost $/M".padStart(10)}`,
@@ -150,7 +148,7 @@ export default defineCommand({
 
 		if (daItems.length > 0) {
 			daItems.sort((a, b) => b.elo - a.elo);
-			lines.push(`\n🎨 ${ansi("DESIGN ARENA", C_BOLD)}`);
+			lines.push(`\n${fmtSection(ICON.settings, "DESIGN ARENA")}`);
 			lines.push(
 				`  ${"Model".padEnd(30)} ${"ELO".padEnd(8)} ${"Win%".padEnd(7)} ${"Category".padEnd(12)}`,
 			);

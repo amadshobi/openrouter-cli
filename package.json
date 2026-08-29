@@ -1,6 +1,6 @@
 {
   "name": "openrouter-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "OpenRouter Control Center — terminal CLI for credits, models, benchmarks, analytics & API key management",
   "license": "MIT",
   "author": "amadshobi",

@@ -13,6 +13,16 @@ export function ansi(text: string | number, code: string): string {
 	return `${code}${text}${C_RESET}`;
 }
 
+const DIVIDER = "━".repeat(20);
+
+/**
+ * Section header: `<icon> <TITLE>` over a divider line.
+ * Usage: `fmtSection(ICON.credits, "CREDIT BALANCE")`.
+ */
+export function fmtSection(icon: string, title: string): string {
+	return `${icon} ${ansi(title, C_BOLD)}\n${DIVIDER}`;
+}
+
 /** Format a USD value to 4 decimals. */
 export function fmtUsd(v: number | string | null | undefined): string {
 	const n = Number(v ?? 0);
