@@ -15,7 +15,10 @@ async function dispatch(): Promise<string> {
 		return "";
 	}
 	if (rawArgs.includes("--version") || rawArgs.includes("-v")) {
-		return "1.0.0";
+		// read version from the root command meta — single source of truth
+		const metaVal = await rootCmd.meta;
+		const meta = typeof metaVal === "function" ? await metaVal() : metaVal;
+		return meta?.version ?? "0.0.0";
 	}
 
 	// walk down the command tree
