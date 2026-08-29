@@ -6,7 +6,9 @@ export const C_RED = "\x1b[91m";
 export const C_GREEN = "\x1b[92m";
 export const C_YELLOW = "\x1b[93m";
 export const C_BLUE = "\x1b[94m";
+export const C_MAGENTA = "\x1b[95m";
 export const C_CYAN = "\x1b[96m";
+export const C_WHITE = "\x1b[97m";
 
 /** Wrap text in an ANSI code sequence. */
 export function ansi(text: string | number, code: string): string {
@@ -14,6 +16,150 @@ export function ansi(text: string | number, code: string): string {
 }
 
 export const DIVIDER = "━".repeat(20);
+
+/** Strip ANSI color and style escape codes to get visible length. */
+export function stripAnsi(text: string): string {
+	return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+/** Get visible string width in terminal characters (ignoring ANSI sequences). */
+export function visibleWidth(text: string): number {
+	return stripAnsi(text).length;
+}
+
+/** Pad string to target visual width while preserving ANSI sequences. */
+export function padVisual(
+	text: string,
+	targetWidth: number,
+	align: "left" | "right" | "center" = "left",
+): string {
+	const current = visibleWidth(text);
+	if (current >= targetWidth) return text;
+	const diff = targetWidth - current;
+
+	if (align === "right") {
+		return " ".repeat(diff) + text;
+	}
+	if (align === "center") {
+		const left = Math.floor(diff / 2);
+		const right = diff - left;
+		return " ".repeat(left) + text + " ".repeat(right);
+	}
+	return text + " ".repeat(diff);
+}
+
+export interface TableColumn {
+	header: string;
+	align?: "left" | "right" | "center";
+	minWidth?: number;
+}
+
+export interface RenderTableOptions {
+	columns: TableColumn[];
+	rows: string[][];
+	footerRows?: string[][];
+}
+
+/**
+ * Render data table with single-line box drawing characters (┌ ┬ ┐ │ ├ ┼ ┤ └ ┴ ┘).
+ */
+export function renderBoxTable(opts: RenderTableOptions): string {
+	const { columns, rows, footerRows = [] } = opts;
+	const colCount = columns.length;
+	if (colCount === 0) return "";
+
+	// Calculate column widths based on headers, rows, and footers
+	const widths: number[] = columns.map((col, idx) => {
+		let maxW = Math.max(visibleWidth(col.header), col.minWidth ?? 0);
+		for (const row of rows) {
+			const cell = row[idx] ?? "";
+			maxW = Math.max(maxW, visibleWidth(cell));
+		}
+		for (const fRow of footerRows) {
+			const cell = fRow[idx] ?? "";
+			maxW = Math.max(maxW, visibleWidth(cell));
+		}
+		return maxW;
+	});
+
+	const borderTop = `┌─${widths.map((w) => "─".repeat(w)).join("─┬─")}─┐`;
+	const borderSep = `├─${widths.map((w) => "─".repeat(w)).join("─┼─")}─┤`;
+	const borderBottom = `└─${widths.map((w) => "─".repeat(w)).join("─┴─")}─┘`;
+
+	const formatRow = (cells: string[], isHeader = false) => {
+		const formattedCells = widths.map((w, idx) => {
+			const cell = cells[idx] ?? "";
+			const col = columns[idx];
+			const align = isHeader ? "left" : (col?.align ?? "left");
+			return padVisual(cell, w, align);
+		});
+		return `│ ${formattedCells.join(" │ ")} │`;
+	};
+
+	const lines: string[] = [];
+	lines.push(borderTop);
+	lines.push(
+		formatRow(
+			columns.map((c) => ansi(c.header, C_BOLD)),
+			true,
+		),
+	);
+	lines.push(borderSep);
+
+	for (const r of rows) {
+		lines.push(formatRow(r));
+	}
+
+	if (footerRows.length > 0) {
+		lines.push(borderSep);
+		for (const fr of footerRows) {
+			lines.push(formatRow(fr));
+		}
+	}
+
+	lines.push(borderBottom);
+	return lines.join("\n");
+}
+
+export interface RenderBoxCardOptions {
+	title?: string;
+	lines: string[];
+	minWidth?: number;
+}
+
+/**
+ * Render a single-box card with optional header title.
+ */
+export function renderBoxCard(opts: RenderBoxCardOptions): string {
+	const { title, lines: contentLines, minWidth = 40 } = opts;
+
+	let maxW = minWidth;
+	if (title) {
+		maxW = Math.max(maxW, visibleWidth(title) + 4);
+	}
+	for (const line of contentLines) {
+		maxW = Math.max(maxW, visibleWidth(line));
+	}
+
+	const borderTop = `┌─${"─".repeat(maxW)}─┐`;
+	const borderSep = `├─${"─".repeat(maxW)}─┤`;
+	const borderBottom = `└─${"─".repeat(maxW)}─┘`;
+
+	const result: string[] = [];
+	result.push(borderTop);
+
+	if (title) {
+		result.push(`│ ${padVisual(title, maxW, "left")} │`);
+		result.push(borderSep);
+	}
+
+	for (const line of contentLines) {
+		result.push(`│ ${padVisual(line, maxW, "left")} │`);
+	}
+
+	result.push(borderBottom);
+	return result.join("\n");
+}
 
 /**
  * Section header: `<icon> <TITLE>` over a divider line.

@@ -42,3 +42,20 @@ bun run src/index.ts     # dev: run from source
 - `keys delete` requires `--yes` (destructive guard, non-interactive).
 - `keys create`: `--limit` USD, `--limit-reset daily|weekly|monthly`, `--expires` (ISO or `30d`), `--include-byok`.
 - Safe lifecycle test: create → disable → enable → update → delete --yes, then `or keys list` to verify clean state.
+
+## Table styling standards
+
+- Use single-line box drawing characters (`┌ ┬ ┐`, `│`, `├ ┼ ┤`, `└ ┴ ┘`) modeled after Goblin Nexus (`gn`).
+- Always use `renderBoxTable` and `renderBoxCard` from `src/core/format.ts` for tabular data, balance cards, and inspectors.
+- Formatting must be ANSI-aware (use `padVisual` / `visibleWidth` to prevent alignment breakage from color escapes).
+- Column alignment: left for text/names, right for currency/numeric values, center for badges/gauges.
+
+## Level 2 help & command ordering standards
+
+- Dual-Level Help ordering is strictly enforced across all subcommands:
+  1. **Description**: Concise summary of command purpose.
+  2. **USAGE**: Formatted command syntax (`or <cmd> [OPTIONS] [ARGS]`).
+  3. **ARGUMENTS**: List of positional arguments and descriptions.
+  4. **OPTIONS**: Flag options and short aliases.
+  5. **EXAMPLES**: Placed strictly at the **bottom** via `examples: string[]` attached to command definition objects (rendered by `src/index.ts`).
+- Avoid cluttering command descriptions with separate visual indicator legends; keep descriptions clean and put practical CLI invocations in `examples`.

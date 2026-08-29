@@ -57,12 +57,40 @@ async function dispatch(): Promise<string> {
 	// builtin help for the resolved command (deepest level)
 	if (args.includes("--help") || args.includes("-h")) {
 		await showUsage(cmd);
+		const examples =
+			(cmd as { examples?: string[] }).examples ??
+			(
+				(await (typeof cmd.meta === "function" ? cmd.meta() : cmd.meta)) as
+					| { examples?: string[] }
+					| undefined
+			)?.examples;
+		if (examples && Array.isArray(examples) && examples.length > 0) {
+			console.log("EXAMPLES\n");
+			for (const ex of examples) {
+				console.log(`  ${ex}`);
+			}
+			console.log();
+		}
 		return "";
 	}
 
 	// root help / unknown command
 	if (rest.includes("--help") || rest.includes("-h")) {
 		await showUsage(rootCmd);
+		const examples =
+			(rootCmd as { examples?: string[] }).examples ??
+			(
+				(await (typeof rootCmd.meta === "function"
+					? rootCmd.meta()
+					: rootCmd.meta)) as { examples?: string[] } | undefined
+			)?.examples;
+		if (examples && Array.isArray(examples) && examples.length > 0) {
+			console.log("EXAMPLES\n");
+			for (const ex of examples) {
+				console.log(`  ${ex}`);
+			}
+			console.log();
+		}
 		return "";
 	}
 

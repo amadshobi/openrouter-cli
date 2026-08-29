@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Single-line box drawing tables (`renderBoxTable`, `renderBoxCard`) in `src/core/format.ts`
+- `or credits <keyname>` deep-dive inspector for specific API keys (multi-window spend, BYOK, quota gauge, 24h model usage)
+- `or credits --current` / `-c` shortcut to inspect active session API key metadata
+- `or credits --json` / `-j` flag for machine-readable JSON output
+- Dual-Level Help system with bottom-positioned command `EXAMPLES` rendering
+
+### Changed
+
+- Redesigned `or credits` layout to Goblin Nexus single-line box table standard
+- Key pagination in `or credits` to dynamically fetch all keys across pages
+- Updated `AGENTS.md` with table styling standards and dual-level help ordering rules
+
 ## [1.1.1] - 2026-08-29
 
 ### Fixed
