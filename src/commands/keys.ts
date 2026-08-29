@@ -151,7 +151,7 @@ export default defineCommand({
 						return fmtError(
 							"KEYS ERROR",
 							new Error(
-								`Invalid --limit: '${args.limit}' (must be a positive number)`,
+								`Invalid --limit: '${args.limit}' (must be a non-negative number)`,
 							),
 							"Example: --limit=5.00",
 						);
@@ -249,7 +249,9 @@ export default defineCommand({
 					if (Number.isNaN(n) || n < 0)
 						return fmtError(
 							"KEYS UPDATE ERROR",
-							new Error(`Invalid --limit: '${v}' (must be a positive number)`),
+							new Error(
+								`Invalid --limit: '${v}' (must be a non-negative number)`,
+							),
 							"Example: --limit=10",
 						);
 					body.limit = n;

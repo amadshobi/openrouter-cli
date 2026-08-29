@@ -63,7 +63,7 @@ export default defineCommand({
 		limit: {
 			type: "string",
 			alias: "n",
-			description: "Max rows (default 10)",
+			description: "Max rows (default 20)",
 		},
 	},
 	async run({ args }) {
