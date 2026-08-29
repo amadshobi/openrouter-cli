@@ -10,6 +10,7 @@ import {
 	C_GREEN,
 	C_RED,
 	C_CYAN,
+	DIVIDER,
 } from "../core/format.ts";
 import { ICON } from "../core/icon.ts";
 
@@ -93,11 +94,6 @@ export default defineCommand({
 			alias: "H",
 			description: "With --check: show healthy models only",
 		},
-		force: {
-			type: "boolean",
-			alias: "f",
-			description: "Force re-fetch from API",
-		},
 		in: {
 			type: "string",
 			valueHint: "RANGE",
@@ -156,7 +152,7 @@ export default defineCommand({
 				}
 				const lines = [
 					`${ICON.user} ${ansi("MY MODELS", C_BOLD)} (${models.length})`,
-					"━━━━━━━━━━━━━━━━━━━━",
+					DIVIDER,
 				];
 				for (const m of models) {
 					lines.push(
@@ -182,27 +178,43 @@ export default defineCommand({
 			ctxMax = Number.POSITIVE_INFINITY;
 		let releaseDate: Date | null = null;
 
-		if (args.in) {
+		const inRaw = args.in
+			? String(args.in).startsWith("=")
+				? String(args.in).slice(1)
+				: String(args.in)
+			: undefined;
+		const outRaw = args.out
+			? String(args.out).startsWith("=")
+				? String(args.out).slice(1)
+				: String(args.out)
+			: undefined;
+		const ctxRaw = args.context
+			? String(args.context).startsWith("=")
+				? String(args.context).slice(1)
+				: String(args.context)
+			: undefined;
+
+		if (inRaw) {
 			try {
-				[inMin, inMax] = parseRange(args.in);
+				[inMin, inMax] = parseRange(inRaw);
 			} catch {
 				errors.push(
 					`Invalid --in: '${args.in}' (format: 0.15 | 0.1:0.5 | 0.5:)`,
 				);
 			}
 		}
-		if (args.out) {
+		if (outRaw) {
 			try {
-				[outMin, outMax] = parseRange(args.out);
+				[outMin, outMax] = parseRange(outRaw);
 			} catch {
 				errors.push(
 					`Invalid --out: '${args.out}' (format: 0.15 | 0.1:0.5 | 0.5:)`,
 				);
 			}
 		}
-		if (args.context) {
+		if (ctxRaw) {
 			try {
-				[ctxMin, ctxMax] = parseRange(args.context, true);
+				[ctxMin, ctxMax] = parseRange(ctxRaw, true);
 			} catch {
 				errors.push(
 					`Invalid --context: '${args.context}' (format: 128k | 200k:1M | :500k)`,
@@ -262,9 +274,9 @@ export default defineCommand({
 
 		if (!args.list && !args.check) {
 			return (
-				`${ICON.robot} ${ansi("MODELS", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\n• Total models: ${models.length}\n` +
+				`${ICON.robot} ${ansi("MODELS", C_BOLD)}\n${DIVIDER}\n• Total models: ${models.length}\n` +
 				`\nUse --list for the table, --check for health probe, --count for total, --mine for your models.\n` +
-				`Examples:\n  or models --list --in=0.1:0.5 --ctx=128k: -r=30d\n  or models --check --in=0.1:0.5\n  or models --count`
+				`Examples:\n  or models --list --in=0.1:0.5 -x=128k: -r=30d\n  or models --check --in=0.1:0.5\n  or models --count`
 			);
 		}
 
@@ -307,7 +319,7 @@ export default defineCommand({
 		}
 
 		if (processed.length === 0) {
-			return `${ICON.warning} ${ansi("NO MODELS FOUND", C_BOLD)}\n━━━━━━━━━━━━━━━━━━━━\nFilter: ${filterStr}\nTotal scanned: ${models.length}\n\nFilter too strict, try widening the range.`;
+			return `${ICON.warning} ${ansi("NO MODELS FOUND", C_BOLD)}\n${DIVIDER}\nFilter: ${filterStr}\nTotal scanned: ${models.length}\n\nFilter too strict, try widening the range.`;
 		}
 
 		processed.sort((a, b) => a.prompt - b.prompt);
@@ -334,7 +346,7 @@ export default defineCommand({
 			`Filter: ${filterStr}`,
 		];
 		if (args.check) lines.push(`Last Check: ${lastCheckStr}`);
-		lines.push("━━━━━━━━━━━━━━━━━━━━");
+		lines.push(DIVIDER);
 
 		if (args.check) {
 			lines.push(
@@ -387,7 +399,7 @@ export default defineCommand({
 async function probe(modelId: string): Promise<[string, number]> {
 	const base = "https://openrouter.ai/api/v1";
 	const key =
-		process.env.OPENROUTER_API_KEY ?? process.env.MANAGEMENT_KEY ?? "";
+		process.env.MANAGEMENT_KEY ?? process.env.OPENROUTER_API_KEY ?? "";
 	const start = performance.now();
 	try {
 		const res = await fetch(`${base}/chat/completions`, {
@@ -405,8 +417,8 @@ async function probe(modelId: string): Promise<[string, number]> {
 		});
 		const latency = performance.now() - start;
 		if (res.status === 200) return [modelId, latency];
-		return [modelId, -res.status]; // negative => non-200, shown as ❔ with no latency
+		return [modelId, -res.status]; // negative => non-200, shown as unverified/unknown with no latency
 	} catch {
-		return [modelId, 0]; // timeout/network => ❔
+		return [modelId, 0]; // timeout/network => unverified
 	}
 }

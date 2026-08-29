@@ -1,6 +1,7 @@
 // Entry point — boot the CLI (bun build --compile target).
 import { runCommand, showUsage } from "citty";
 import { main as rootCmd } from "./cli.ts";
+import { ICON } from "./core/icon.ts";
 
 const rawArgs = process.argv.slice(2);
 
@@ -31,16 +32,21 @@ async function dispatch(): Promise<string> {
 			| Record<string, any>
 			| undefined;
 		const next = rest[0];
-		// unknown command at root level → fail fast with actionable message
+		// unknown command at current level → fail fast with actionable message
 		if (
-			cmd === rootCmd &&
 			subCommands &&
+			Object.keys(subCommands).length > 0 &&
 			next &&
 			!(next in subCommands) &&
 			!next.startsWith("-")
 		) {
-			await showUsage(rootCmd);
-			return `❌ Unknown command: ${next}\n   Run \`or --help\` to list commands.`;
+			await showUsage(cmd);
+			const cmdName = cmd.meta?.name
+				? cmd === rootCmd
+					? "or"
+					: `or ${cmd.meta.name}`
+				: "or";
+			return `${ICON.error} Unknown command: ${next}\n   Run \`${cmdName} --help\` to list commands.`;
 		}
 		if (!subCommands || !next || !(next in subCommands)) break;
 		cmd = subCommands[next];

@@ -10,6 +10,7 @@ import {
 	C_GREEN,
 	C_RED,
 	C_YELLOW,
+	DIVIDER,
 } from "../core/format.ts";
 import { ICON } from "../core/icon.ts";
 
@@ -77,7 +78,7 @@ export default defineCommand({
 
 					const lines = [
 						`${ICON.key} ${ansi("API KEYS", C_BOLD)} (${keys.length})`,
-						"━━━━━━━━━━━━━━━━━━━━",
+						DIVIDER,
 						`  ${"Name".padEnd(22)} ${"Total".padStart(8)} ${"Mo".padStart(8)} ${"Wk".padStart(7)} ${"Today".padStart(7)} ${"BYOK".padStart(8)}  ${"Limit".padStart(9)} ${"Reset".padEnd(4)} ${"Status".padEnd(8)}`,
 						`  ${"─".repeat(22)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(7)} ${"─".repeat(7)} ${"─".repeat(8)}  ${"─".repeat(9)} ${"─".repeat(4)} ${"─".repeat(8)}`,
 					];
@@ -135,7 +136,7 @@ export default defineCommand({
 				if (!name)
 					return fmtError(
 						"KEYS ERROR",
-						new Error("Nama key wajib diisi"),
+						new Error("Key name is required"),
 						"Example: or keys create my-key --limit=5 --limit-reset=daily",
 					);
 
@@ -146,10 +147,12 @@ export default defineCommand({
 							? String(args.limit).slice(1)
 							: args.limit,
 					);
-					if (Number.isNaN(limit))
+					if (Number.isNaN(limit) || limit < 0)
 						return fmtError(
 							"KEYS ERROR",
-							new Error(`Invalid --limit: '${args.limit}'`),
+							new Error(
+								`Invalid --limit: '${args.limit}' (must be a positive number)`,
+							),
 							"Example: --limit=5.00",
 						);
 				}
@@ -191,10 +194,10 @@ export default defineCommand({
 					});
 					const key = res.data;
 					// OpenRouter no longer returns plaintext key (write-only) — only truncated label
-					const label = (key as any)?.label ?? "?";
+					const label = (key as { label?: string })?.label ?? "?";
 					const lines = [
 						`${ICON.key} ${ansi("KEY CREATED", C_BOLD)}`,
-						"━━━━━━━━━━━━━━━━━━━━",
+						DIVIDER,
 						`  • Name:   ${key?.name ?? name}`,
 						`  • Hash:   ${key?.hash ?? "?"}`,
 						`  • Label:  ${label}`,
@@ -243,10 +246,11 @@ export default defineCommand({
 						? String(args.limit).slice(1)
 						: String(args.limit);
 					const n = Number(v);
-					if (Number.isNaN(n))
+					if (Number.isNaN(n) || n < 0)
 						return fmtError(
 							"KEYS UPDATE ERROR",
-							new Error(`Invalid --limit: '${v}'`),
+							new Error(`Invalid --limit: '${v}' (must be a positive number)`),
+							"Example: --limit=10",
 						);
 					body.limit = n;
 				}
