@@ -399,7 +399,7 @@ export default defineCommand({
 async function probe(modelId: string): Promise<[string, number]> {
 	const base = "https://openrouter.ai/api/v1";
 	const key =
-		process.env.MANAGEMENT_KEY ?? process.env.OPENROUTER_API_KEY ?? "";
+		process.env.OPENROUTER_API_KEY ?? process.env.MANAGEMENT_KEY ?? "";
 	const start = performance.now();
 	try {
 		const res = await fetch(`${base}/chat/completions`, {
