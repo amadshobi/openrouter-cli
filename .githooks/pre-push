@@ -19,9 +19,12 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 REMOTE_BRANCH="${REMOTE}/${BRANCH}"
 if git rev-parse --verify "$REMOTE_BRANCH" >/dev/null 2>&1; then
   RANGE="$REMOTE_BRANCH..HEAD"
+elif git rev-parse --verify "$REMOTE/HEAD" >/dev/null 2>&1; then
+  # New branch on existing remote: scan commits since the shared ancestor
+  RANGE="$(git merge-base HEAD "$REMOTE/HEAD")..HEAD"
 else
-  # New branch: scan all commits reachable from HEAD that aren't shared with origin
-  RANGE="$(git merge-base HEAD "$REMOTE/HEAD" 2>/dev/null || echo HEAD~1)..HEAD"
+  # Initial push (empty remote): scan the full history
+  RANGE="HEAD"
 fi
 
 LEAKS=$(git log --format='%H %s' "$RANGE" 2>/dev/null | wc -l)
